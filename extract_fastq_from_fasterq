@@ -1,0 +1,27 @@
+#!/bin/sh
+#This bash script is to pull out fastq files from fasterq files copied from the diskin lab folder.
+#These are TARGET RNA paired patient data files. High risk NBL data have a subscript of "TARGET-30-*"
+#To know which SRR id corresponds to NBL (Neuroblastoma), all the metadata has to be pulled. 
+#The metadata script is present in this repository: pull_metadata_target.sh
+
+
+#load the petagene module to decompress files
+#file NBL_IDs are the SRR files 
+#=== Load module =======
+module load petagene 
+
+## ===== Reads the TARGET ids=== ##
+mapfile list_srr < <(cat NBL_IDS)
+
+## ====Run each SRR id after copying the fasterq files. The result is *fastq.gz files for paired ===##
+
+for i in  ${list_srr[@]}
+do
+        cp  fastq/$i* .
+        petasuite --decompress --replace --md5match $i_1.fasterq
+        petasuite --decompress --replace --md5match $i_2.fasterq
+        #rm $i*.fasterq
+
+done
+
+## ===== END ======#
