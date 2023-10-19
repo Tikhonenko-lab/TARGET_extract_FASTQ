@@ -1,0 +1,33 @@
+#!/bin/sh
+# This script extracts metadata for SRR ids. All the fasterq files are already copied into the current folder 
+# where this script is run.
+# It first extracts all the file names which have a suffix "*1.fasterq" using only forward read (paired end).
+# It then iterates through the list of SRR ids and uses esearch to query SRA. Redirect the output to a text file
+# To run: ./extract_metadata_SRR_ids > ALL_ids
+# The output looks like this (just 1 line added):
+##  OUTPUT of this script ##### 
+#Run,ReleaseDate,LoadDate,spots,bases,spots_with_mates,avgLength,size_MB,AssemblyName,download_path,Experiment,LibraryName,LibraryStrategy,LibrarySelection,LibrarySource,LibraryLayout,InsertSize,InsertDev,Platform,Model,SRAStudy,BioProject,Study_Pubmed_id,ProjectID,Sample,BioSample,SampleType,TaxID,ScientificName,SampleName,g1k_pop_code,source,g1k_analysis_group,Subject_ID,Sex,Disease,Tumor,Affection_Status,Analyte_Type,Histological_Type,Body_Site,CenterName,Submission,dbgap_study_accession,Consent,RunHash,ReadHash 
+#SRR1164986,2016-10-26 12:21:09,2014-03-18 20:15:30,235072983,35260947450,235072983,150,18857,GCA_000001405.13,@dbgap@:reads/SRP012000/SRS552623/SRX467462/SRR1164986/SRR1164986.sra,SRX467462,A24311,RNA-Seq,cDNA,TRANSCRIPTOMIC,PAIRED,0,0,ILLUMINA,Illumina HiSeq 2000,SRP012000,PRJNA89525,,89525,SRS552623,SAMN01778607,simple,9606,Homo sapiens,TARGET-21-PASSLT-09A-01R,,,,671284,male,AML_Induction_Failure,yes,,RNA,AML,Primary Blood Derived Cancer - Bone Marrow,BCCAGSC,SRA137675,phs000465,DS-PEDCR,EB0F21580BD72A08288DE01147E12959,DEAF90023618E68E7759B99361ACCE25 SRR1798969,2016-10-26 12:21:10,2015-02-11 23:08:20,115986789,17398018350,115986789,150,10537,,@dbgap@:reads/SRP012000/SRS552623/SRX467462/SRR1798969/SRR1798969.sra,SRX467462,A24311,RNA-Seq,cDNA,TRANSCRIPTOMIC,PAIRED,0,0,ILLUMINA,Illumina HiSeq 2000,SRP012000,PRJNA89525,,89525,SRS552623,SAMN01778607,simple,9606,Homo sapiens,TARGET-21-PASSLT-09A-01R,,,,671284,male,AML_Induction_Failure,yes,,RNA,AML,Primary Blood Derived Cancer - Bone Marrow,BCCAGSC,SRA238544,phs000465,DS-PEDCR,443193B067188EE12DA4D058006225D2,29F78AB8AC95068142200AD448CBA4CE SRR1798997,2016-10-26 12:21:10,2015-02-11 20:05:34,119086194,17862929100,119086194,150,11220,,@dbgap@:reads/SRP012000/SRS552623/SRX467462/SRR1798997/SRR1798997.sra,SRX467462,A24311,RNA-Seq,cDNA,TRANSCRIPTOMIC,PAIRED,0,0,ILLUMINA,Illumina HiSeq 2000,SRP012000,PRJNA89525,,89525,SRS552623,SAMN01778607,simple,9606,Homo sapiens,TARGET-21-PASSLT-09A-01R,,,,671284,male,AML_Induction_Failure,yes,,RNA,AML,Primary Blood Derived Cancer - Bone Marrow,BCCAGSC,SRA238544,phs000465,DS-PEDCR,2910AB9E7077F31988D1C6C440659FA7,E99FEACB6424599F6B38925CF1012282
+
+
+## ==== START =====##
+#readarray -t list < < (ls -la | awk '{ print $9}' | grep "_1.fasterq")
+#declare -p list1
+#list1=($(ls  *1.fasterq ))
+
+## mapfile helps to put the commands into an array
+mapfile list2 < <(ls fastq/*1.fasterq | awk  -F "_" '{ print $1}')
+
+#printf "%s" "${list2[@]}"
+
+## === Look for metadata from the SRR ids ======#
+for i in "${list2[@]}"
+do
+        printf "%s\n" $i
+
+        mapfile info_esearch < <(esearch  -db sra -query $i  | efetch -format runinfo)
+        echo  ${info_esearch[@]}
+done
+
+## ===== END  =======#
+
